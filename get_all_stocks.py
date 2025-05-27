@@ -6,6 +6,8 @@ import os
 import time
 from datetime import datetime
 from io import StringIO  # Fix for StringIO import
+import yfinance as yf
+from fuzzywuzzy import fuzz
 
 def fetch_nse_stocks():
     """Fetch list of stocks from NSE"""
@@ -167,5 +169,202 @@ def create_stock_list():
         json.dump(variations_dict, f, indent=2)
     print(f"Saved stock symbols mapping to stock_symbols.json")
 
+class StockSymbolManager:
+    def __init__(self):
+        self.cache_file = 'stock_symbols_cache.json'
+        self.cache_expiry_days = 1  # Cache expires after 1 day
+        self.symbols_data = self._load_cached_data()
+
+    def _load_cached_data(self):
+        """Load stock symbols from cache if available and not expired"""
+        if os.path.exists(self.cache_file):
+            try:
+                with open(self.cache_file, 'r') as f:
+                    cache = json.load(f)
+                    # Check if cache is expired
+                    last_updated = datetime.fromisoformat(cache['last_updated'])
+                    if (datetime.now() - last_updated).days < self.cache_expiry_days:
+                        return cache['data']
+            except Exception as e:
+                print(f"Error loading cache: {str(e)}")
+        return self._fetch_and_cache_data()
+
+    def _fetch_and_cache_data(self):
+        """Fetch stock symbols from various exchanges and cache them"""
+        symbols_data = []
+
+        try:
+            # NSE stocks list URL
+            url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                # Read CSV directly from response content
+                df = pd.read_csv(StringIO(response.text))
+                
+                # Process NSE stocks
+                for _, row in df.iterrows():
+                    symbol = str(row['SYMBOL']).strip()
+                    name = str(row['NAME OF COMPANY']).strip()
+                    
+                    # Add NSE symbol
+                    symbols_data.append({
+                        'symbol': f"{symbol}.NS",
+                        'name': name,
+                        'exchange': 'NSE'
+                    })
+                    
+                    # Add BSE symbol variant
+                    symbols_data.append({
+                        'symbol': f"{symbol}.BO",
+                        'name': name,
+                        'exchange': 'BSE'
+                    })
+                    
+                    # Add symbol without exchange suffix
+                    symbols_data.append({
+                        'symbol': symbol,
+                        'name': name,
+                        'exchange': 'NSE'
+                    })
+            else:
+                print(f"Failed to fetch NSE data: Status code {response.status_code}")
+                # Use backup data if available
+                if os.path.exists('data/stock_list.csv'):
+                    df = pd.read_csv('data/stock_list.csv')
+                    for _, row in df.iterrows():
+                        symbols_data.append({
+                            'symbol': row['Symbol'],
+                            'name': row['Company_Name'],
+                            'exchange': row['Exchange']
+                        })
+
+        except Exception as e:
+            print(f"Error fetching stock data: {str(e)}")
+            # Use backup data if available
+            if os.path.exists('data/stock_list.csv'):
+                df = pd.read_csv('data/stock_list.csv')
+                for _, row in df.iterrows():
+                    symbols_data.append({
+                        'symbol': row['Symbol'],
+                        'name': row['Company_Name'],
+                        'exchange': row['Exchange']
+                    })
+
+        if not symbols_data:
+            # Add some common stock symbols as fallback
+            fallback_symbols = [
+                ('HDFCBANK', 'HDFC Bank Ltd', 'NSE'),
+                ('RELIANCE', 'Reliance Industries Ltd', 'NSE'),
+                ('TCS', 'Tata Consultancy Services Ltd', 'NSE'),
+                ('INFY', 'Infosys Ltd', 'NSE'),
+                ('TATAMOTORS', 'Tata Motors Ltd', 'NSE')
+            ]
+            
+            for symbol, name, exchange in fallback_symbols:
+                # Add with exchange suffix
+                symbols_data.append({
+                    'symbol': f"{symbol}.NS",
+                    'name': name,
+                    'exchange': 'NSE'
+                })
+                symbols_data.append({
+                    'symbol': f"{symbol}.BO",
+                    'name': name,
+                    'exchange': 'BSE'
+                })
+                # Add without suffix
+                symbols_data.append({
+                    'symbol': symbol,
+                    'name': name,
+                    'exchange': exchange
+                })
+
+        # Cache the data
+        cache_data = {
+            'last_updated': datetime.now().isoformat(),
+            'data': symbols_data
+        }
+        try:
+            with open(self.cache_file, 'w') as f:
+                json.dump(cache_data, f)
+        except Exception as e:
+            print(f"Error caching data: {str(e)}")
+
+        return symbols_data
+
+    def search_symbol(self, query):
+        """Search for stock symbols using fuzzy matching"""
+        query = query.upper()
+        matches = []
+        
+        for stock in self.symbols_data:
+            symbol_score = fuzz.ratio(query, stock['symbol'].split('.')[0])
+            name_score = fuzz.partial_ratio(query, stock['name'].upper())
+            
+            # Use the higher of the two scores
+            score = max(symbol_score, name_score)
+            
+            if score > 60:  # Threshold for matches
+                matches.append({
+                    'symbol': stock['symbol'],
+                    'name': stock['name'],
+                    'exchange': stock['exchange'],
+                    'score': score
+                })
+        
+        # Sort by score and return top 10 matches
+        return sorted(matches, key=lambda x: x['score'], reverse=True)[:10]
+
+    def validate_symbol(self, symbol):
+        """Validate a stock symbol and suggest alternatives if needed"""
+        # Check if symbol exists exactly as provided
+        exact_match = next((s for s in self.symbols_data if s['symbol'].upper() == symbol.upper()), None)
+        if exact_match:
+            return {'valid': True, 'symbol': exact_match['symbol']}
+
+        # If symbol has exchange suffix, try without it
+        if '.' in symbol:
+            base_symbol = symbol.split('.')[0]
+            matches = [s for s in self.symbols_data if s['symbol'].startswith(f"{base_symbol}.")]
+            if matches:
+                return {
+                    'valid': False,
+                    'message': f"Could not find valid symbol for '{symbol}'. Try these alternatives:",
+                    'suggestions': [{'symbol': m['symbol'], 'name': m['name']} for m in matches[:3]]
+                }
+
+        # Try fuzzy matching for suggestions
+        matches = self.search_symbol(symbol)
+        if matches:
+            return {
+                'valid': False,
+                'message': f"Could not find exact match for '{symbol}'. Did you mean:",
+                'suggestions': [{'symbol': m['symbol'], 'name': m['name']} for m in matches[:3]]
+            }
+
+        return {
+            'valid': False,
+            'message': f"Could not find any matching symbols for '{symbol}'.",
+            'suggestions': []
+        }
+
+# Global instance
+stock_manager = StockSymbolManager()
+
 if __name__ == "__main__":
-    create_stock_list() 
+    create_stock_list()
+
+    # Test the functionality
+    test_symbols = ['HDFCBANK.NS', 'RELIANCE.BO', 'INFY', 'TATAMOTORS']
+    for symbol in test_symbols:
+        result = stock_manager.validate_symbol(symbol)
+        print(f"\nValidating {symbol}:")
+        print(json.dumps(result, indent=2))
+
+        print(f"\nSearching for {symbol}:")
+        matches = stock_manager.search_symbol(symbol)
+        print(json.dumps(matches, indent=2)) 

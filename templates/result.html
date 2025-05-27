@@ -3,90 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gann Theory Analysis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>{{ analysis.stock }} - Gann Analysis Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>Gann Analysis Results</h1>
-        {% if analysis.status == 'ERROR' %}
-            <div class="error-message">
-                {{ analysis.message }}
+    <div class="app-wrapper">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="bi bi-graph-up"></i>
+                    Gann Market Analysis
+                </a>
+                <a href="/" class="btn btn-outline-light">
+                    <i class="bi bi-search"></i>
+                    Analyze Another Stock
+                </a>
             </div>
-        {% else %}
-        <div class="card result-card">
-            <div class="stock-header">
-                <h2>{{ analysis.stock }}</h2>
-                <p class="current-price">₹{{ analysis.current_price }}</p>
-            </div>
-            
-            <div class="recommendation-box {{ analysis.recommendation.lower().replace(' ', '-') }}">
-                <h3>Recommendation</h3>
-                <p class="recommendation">{{ analysis.recommendation }}</p>
-                <p class="timing">Target Date: {{ analysis.suggested_time }}</p>
-                <p class="confidence">Confidence: {{ analysis.confidence }}%</p>
-            </div>
-            
-            <div class="gann-analysis-box">
-                <h3>Gann Theory Analysis</h3>
-                <div class="analysis-grid">
-                    <div class="analysis-item">
-                        <span class="label">Market Trend:</span>
-                        <span class="value {{ analysis.trend.lower() }}">{{ analysis.trend }}</span>
-                    </div>
-                    <div class="analysis-item">
-                        <span class="label">Momentum:</span>
-                        <span class="value {{ analysis.momentum.lower() }}">{{ analysis.momentum }}</span>
-                    </div>
-                </div>
-                <div class="explanation">
-                    <p>{{ analysis.explanation }}</p>
-                </div>
-            </div>
+        </nav>
 
-            <div class="price-levels-box">
-                <h3>Gann Price Levels</h3>
-                <div class="levels-grid">
-                    <div class="level-section">
-                        <h4>Resistance Levels</h4>
-                        {% for level in analysis.resistance_levels[:3] %}
-                        <div class="level-item resistance">₹{{ level }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="level-section">
-                        <h4>Current Price</h4>
-                        <div class="level-item current">₹{{ analysis.current_price }}</div>
-                    </div>
-                    <div class="level-section">
-                        <h4>Support Levels</h4>
-                        {% for level in analysis.support_levels[:3] %}
-                        <div class="level-item support">₹{{ level }}</div>
-                        {% endfor %}
+        <!-- Main Content -->
+        <div class="main-grid-container">
+            <!-- Hero Section -->
+            <div class="hero-section result-hero">
+                <div class="container">
+                    <div class="stock-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1 class="stock-symbol mb-0">{{ analysis.stock }}</h1>
+                                {% if original_symbol != analysis.stock %}
+                                <p class="original-symbol text-light mb-0">Original: {{ original_symbol }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="current-price">
+                                <span class="price-label">Current Price</span>
+                                <span class="price-value">₹{{ "%.2f"|format(analysis.current_price) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="time-cycles-box">
-                <h3>Time Cycles Analysis</h3>
-                <div class="cycles-grid">
-                    {% for days, correlation in analysis.time_cycles.items() %}
-                    <div class="cycle-item">
-                        <span class="cycle-days">{{ days }} Days</span>
-                        <span class="cycle-strength {{ 'strong' if correlation|abs > 0.7 else 'weak' }}">
-                            {{ (correlation * 100)|abs|round|int }}% {{ 'Positive' if correlation > 0 else 'Negative' }}
-                        </span>
+            <div class="container">
+                <div class="content-grid">
+                    <!-- Recommendation Card -->
+                    <div class="grid-item recommendation-section">
+                        <div class="recommendation-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-bullseye"></i>
+                                Recommendation
+                            </h2>
+                            <div class="recommendation-content">
+                                <div class="recommendation-signal {{ analysis.recommendation.lower() }}">
+                                    {{ analysis.recommendation }}
+                                </div>
+                                <div class="recommendation-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Target Date</span>
+                                        <span class="detail-value">{{ analysis.suggested_time }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Confidence</span>
+                                        <span class="detail-value">{{ "%.0f"|format(analysis.confidence * 100) }}%</span>
+                                    </div>
+                                </div>
+                                {% if analysis.explanation %}
+                                <div class="recommendation-explanation">
+                                    {{ analysis.explanation }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    {% endfor %}
+
+                    <!-- Gann Theory Analysis -->
+                    <div class="grid-item analysis-section">
+                        <div class="analysis-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-graph-up"></i>
+                                Gann Theory Analysis
+                            </h2>
+                            <div class="analysis-grid">
+                                <div class="analysis-item">
+                                    <h3>Market Trend</h3>
+                                    <div class="trend-value {{ analysis.trend.lower() }}">
+                                        {{ analysis.trend }}
+                                    </div>
+                                </div>
+                                <div class="analysis-item">
+                                    <h3>Momentum</h3>
+                                    <div class="momentum-value {{ analysis.momentum.lower() }}">
+                                        {{ analysis.momentum }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Levels -->
+                    <div class="grid-item price-levels-section">
+                        <div class="price-levels-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-currency-dollar"></i>
+                                Gann Price Levels
+                            </h2>
+                            <div class="levels-grid">
+                                <div class="level-column resistance">
+                                    <h3>Resistance Levels</h3>
+                                    {% for level in analysis.resistance_levels[:3] %}
+                                    <div class="price-level">₹{{ "%.2f"|format(level) }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="level-column current">
+                                    <h3>Current Price</h3>
+                                    <div class="price-level current">₹{{ "%.2f"|format(analysis.current_price) }}</div>
+                                </div>
+                                <div class="level-column support">
+                                    <h3>Support Levels</h3>
+                                    {% for level in analysis.support_levels[:3] %}
+                                    <div class="price-level">₹{{ "%.2f"|format(level) }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Cycles -->
+                    <div class="grid-item time-cycles-section">
+                        <div class="time-cycles-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-clock-history"></i>
+                                Time Cycles Analysis
+                            </h2>
+                            <div class="cycles-grid">
+                                {% for days, correlation in analysis.time_cycles.items() %}
+                                <div class="cycle-item">
+                                    <div class="cycle-days">{{ days }} Days</div>
+                                    <div class="cycle-correlation {% if correlation > 0.5 %}positive{% elif correlation < -0.5 %}negative{% else %}neutral{% endif %}">
+                                        {{ "%.0f"|format(correlation * 100) }}% Correlation
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="bi bi-search"></i>
+                        Analyze Another Stock
+                    </a>
+                    <button class="btn btn-outline-primary btn-lg" onclick="window.print()">
+                        <i class="bi bi-printer"></i>
+                        Print Analysis
+                    </button>
                 </div>
             </div>
-            
-            <a href="{{ url_for('index') }}" class="back-button">Analyze Another Stock</a>
-        </div>
-        {% endif %}
-        
-        <div class="footer">
-            <p>Gann Theory Analysis</p>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Add fade-in animation to elements
+            $('.grid-item').addClass('fade-in');
+            
+            // Highlight current price level
+            var currentPrice = parseFloat('{{ analysis.current_price }}');
+            $('.price-level').each(function() {
+                var levelPrice = parseFloat($(this).text().replace('₹', ''));
+                if (Math.abs(currentPrice - levelPrice) < 0.01) {
+                    $(this).addClass('current');
+                }
+            });
+        });
+    </script>
 </body>
 </html> 
