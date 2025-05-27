@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gann Theory Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Gann Analysis Results</h1>
+        {% if analysis.status == 'ERROR' %}
+            <div class="error-message">
+                {{ analysis.message }}
+            </div>
+        {% else %}
+        <div class="card result-card">
+            <div class="stock-header">
+                <h2>{{ analysis.stock }}</h2>
+                <p class="current-price">₹{{ analysis.current_price }}</p>
+            </div>
+            
+            <div class="recommendation-box {{ analysis.recommendation.lower().replace(' ', '-') }}">
+                <h3>Recommendation</h3>
+                <p class="recommendation">{{ analysis.recommendation }}</p>
+                <p class="timing">Target Date: {{ analysis.suggested_time }}</p>
+                <p class="confidence">Confidence: {{ analysis.confidence }}%</p>
+            </div>
+            
+            <div class="gann-analysis-box">
+                <h3>Gann Theory Analysis</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <span class="label">Market Trend:</span>
+                        <span class="value {{ analysis.trend.lower() }}">{{ analysis.trend }}</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="label">Momentum:</span>
+                        <span class="value {{ analysis.momentum.lower() }}">{{ analysis.momentum }}</span>
+                    </div>
+                </div>
+                <div class="explanation">
+                    <p>{{ analysis.explanation }}</p>
+                </div>
+            </div>
+
+            <div class="price-levels-box">
+                <h3>Gann Price Levels</h3>
+                <div class="levels-grid">
+                    <div class="level-section">
+                        <h4>Resistance Levels</h4>
+                        {% for level in analysis.resistance_levels[:3] %}
+                        <div class="level-item resistance">₹{{ level }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="level-section">
+                        <h4>Current Price</h4>
+                        <div class="level-item current">₹{{ analysis.current_price }}</div>
+                    </div>
+                    <div class="level-section">
+                        <h4>Support Levels</h4>
+                        {% for level in analysis.support_levels[:3] %}
+                        <div class="level-item support">₹{{ level }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="time-cycles-box">
+                <h3>Time Cycles Analysis</h3>
+                <div class="cycles-grid">
+                    {% for days, correlation in analysis.time_cycles.items() %}
+                    <div class="cycle-item">
+                        <span class="cycle-days">{{ days }} Days</span>
+                        <span class="cycle-strength {{ 'strong' if correlation|abs > 0.7 else 'weak' }}">
+                            {{ (correlation * 100)|abs|round|int }}% {{ 'Positive' if correlation > 0 else 'Negative' }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <a href="{{ url_for('index') }}" class="back-button">Analyze Another Stock</a>
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Gann Theory Analysis</p>
+        </div>
+    </div>
+</body>
+</html> 

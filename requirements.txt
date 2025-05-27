@@ -1,0 +1,17 @@
+Flask 
+Werkzeug 
+Jinja2 
+MarkupSafe 
+click 
+itsdangerous 
+numpy
+pandas
+yfinance
+nsepy
+plotly 
+requests 
+python-dateutil
+scikit-learn
+rapidfuzz
+tqdm
+ta

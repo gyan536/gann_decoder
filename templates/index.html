@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gann Theory Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Gann Theory Stock Analysis</h1>
+        
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <form action="/analyze" method="POST" class="search-form">
+                <div class="form-group">
+                    <label for="stock_name">Enter Stock Name or Symbol:</label>
+                    <input type="text" 
+                           id="stock_name" 
+                           name="stock_name" 
+                           placeholder="e.g., TATASTEEL, Reliance"
+                           required>
+                    <div id="suggestions" class="suggestions-box"></div>
+                </div>
+                <button type="submit" class="submit-btn">Analyze Stock</button>
+            </form>
+
+            <div class="search-tips">
+                <h3>Search Tips:</h3>
+                <ul>
+                    <li>Enter company name (e.g., "Tata Steel")</li>
+                    <li>Or use stock symbol (e.g., "TATASTEEL")</li>
+                    <li>Works with both NSE and BSE stocks</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Gann Theory Analysis</p>
+        </div>
+    </div>
+
+    <script>
+        const stockInput = document.getElementById('stock_name');
+        const suggestionsBox = document.getElementById('suggestions');
+        let stocksList = [];
+        let debounceTimer;
+
+        // Fetch stock list
+        fetch('/api/stocks')
+            .then(response => response.json())
+            .then(data => {
+                stocksList = data;
+                stockInput.removeAttribute('disabled');
+                stockInput.placeholder = "e.g., TATASTEEL, Reliance";
+            })
+            .catch(error => {
+                console.error('Error loading stocks:', error);
+                stockInput.placeholder = "Error loading stocks. Please try again.";
+            });
+
+        // Debounce function
+        function debounce(func, wait) {
+            return function(...args) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Handle stock selection
+        function selectStock(symbol) {
+            stockInput.value = symbol;
+            suggestionsBox.style.display = 'none';
+        }
+
+        // Search and filter stocks
+        const handleSearch = debounce((query) => {
+            if (query.length < 2) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            query = query.toUpperCase();
+            const matches = stocksList
+                .filter(stock => 
+                    stock.symbol.includes(query) || 
+                    stock.name.toUpperCase().includes(query)
+                )
+                .slice(0, 5);
+
+            if (matches.length > 0) {
+                suggestionsBox.innerHTML = matches.map(stock => `
+                    <div class="suggestion-item" onclick="selectStock('${stock.symbol}')">
+                        <span class="stock-symbol">${stock.symbol}</span>
+                        <span class="stock-name">${stock.name}</span>
+                    </div>
+                `).join('');
+                suggestionsBox.style.display = 'block';
+            } else {
+                suggestionsBox.innerHTML = `
+                    <div class="suggestion-item">
+                        <span>No matches found</span>
+                    </div>
+                `;
+                suggestionsBox.style.display = 'block';
+            }
+        }, 300);
+
+        // Event listeners
+        stockInput.addEventListener('input', (e) => handleSearch(e.target.value));
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.form-group')) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 
