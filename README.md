@@ -1,36 +1,44 @@
-# Gann Market Analysis with ML
+# GANN Decoder AI
 
-A comprehensive market analysis system combining traditional Gann theory with modern machine learning capabilities.
+A sophisticated stock market analysis tool that combines GANN analysis techniques with machine learning to provide market insights and predictions.
 
 ## Features
 
-- Traditional Gann Analysis
-  - Square of 9 calculations
-  - Support and resistance levels
-  - Time cycles analysis
-  - Price pattern recognition
+- GANN analysis for stock market patterns
+- Machine learning-based market predictions
+- Real-time stock data integration with Yahoo Finance
+- Interactive web interface
+- Support for both Indian (NSE/BSE) and US markets
+- Technical indicators and pattern recognition
+- Time cycle analysis
 
-- ML-Enhanced Analysis
-  - LSTM for price prediction
-  - Random Forest for pattern detection
-  - XGBoost for trend prediction
-  - Isolation Forest for anomaly detection
+## Project Structure
 
-- Combined Analysis Features
-  - Market wave identification
-  - Risk level assessment
-  - Trend strength analysis
-  - Trading signals generation
+```
+gann_decoder_ai/
+├── app/                    # Application package
+│   ├── __init__.py
+│   ├── api/               # API endpoints
+│   ├── core/              # Core business logic
+│   ├── models/            # Data models
+│   └── utils/             # Utility functions
+├── config/                # Configuration files
+├── data/                  # Data storage
+├── static/               # Static files (CSS, JS)
+├── templates/            # HTML templates
+├── tests/                # Test suite
+└── logs/                 # Application logs
+```
 
-## Setup
+## Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/gann_decoder_ai.git
 cd gann_decoder_ai
 ```
 
-2. Create a virtual environment:
+2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -41,11 +49,17 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+4. Set up configuration:
+```bash
+cp config/config.example.py config/config.py
+# Edit config.py with your settings
+```
+
 ## Usage
 
-1. Start the Flask application:
+1. Start the application:
 ```bash
-python app.py
+python run.py
 ```
 
 2. Open your browser and navigate to:
@@ -53,48 +67,77 @@ python app.py
 http://localhost:5000
 ```
 
-3. Enter a stock symbol (e.g., "HDFCBANK.NS" for HDFC Bank NSE listing)
+## Configuration
 
-4. Choose analysis type:
-   - Traditional: Gann analysis only
-   - ML: Machine learning analysis only
-   - Both: Combined analysis
+The application can be configured through:
+- Environment variables
+- Configuration file (`config/config.py`)
+- Command line arguments
 
-## Stock Symbol Format
+Key configuration options:
+- `FLASK_ENV`: Development/Production environment
+- `DEBUG`: Debug mode
+- `SECRET_KEY`: Application secret key
+- `DATABASE_URL`: Database connection string
+- `CACHE_TYPE`: Caching backend
+- `LOG_LEVEL`: Logging level
 
-- Indian NSE stocks: Add ".NS" (e.g., "RELIANCE.NS")
-- Indian BSE stocks: Add ".BO" (e.g., "RELIANCE.BO")
-- US stocks: Use symbol directly (e.g., "AAPL")
+## API Documentation
 
-## API Endpoints
+The application provides a RESTful API for stock analysis:
 
-- `/`: Main page
-- `/analyze`: POST endpoint for analysis
-- `/api/stocks`: GET endpoint for stock symbol search
-- `/api/refresh-analysis`: POST endpoint to refresh analysis
+### Endpoints
 
-## File Structure
+- `GET /api/stocks`: Search available stocks
+- `POST /api/analyze`: Perform stock analysis
+- `POST /api/refresh-analysis`: Refresh analysis for a stock
 
-- `app.py`: Main Flask application
-- `gann_logic.py`: Traditional Gann analysis
-- `ml_market_analysis.py`: ML-based market analysis
-- `templates/`: HTML templates
-  - `index.html`: Input form
-  - `result.html`: Analysis results display
+Detailed API documentation is available at `/api/docs` when running the application.
 
-## Error Handling
+## Development
 
-The system includes robust error handling for:
-- Invalid stock symbols
-- Insufficient data
-- API failures
-- Data validation
-- ML model errors
+### Setting up development environment
+
+1. Install development dependencies:
+```bash
+pip install -r requirements-dev.txt
+```
+
+2. Set up pre-commit hooks:
+```bash
+pre-commit install
+```
+
+### Running tests
+
+```bash
+pytest
+```
+
+### Code style
+
+This project follows PEP 8 style guide. Use flake8 and black for code formatting:
+
+```bash
+black .
+flake8
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- GANN analysis techniques
+- Machine learning libraries contributors
+- Yahoo Finance API
+- Flask framework

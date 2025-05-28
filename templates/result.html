@@ -149,6 +149,437 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Gann Patterns -->
+                    <div class="grid-item gann-patterns-section">
+                        <div class="gann-patterns-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-diagram-3"></i>
+                                Gann Patterns
+                            </h2>
+                            <div class="patterns-grid">
+                                {% if analysis.gann_patterns %}
+                                    {% set summary = analysis.gann_patterns[-1] if analysis.gann_patterns else None %}
+                                    {% if summary and summary.total_patterns > 0 %}
+                                        <div class="pattern-summary">
+                                            <h3>Pattern Summary</h3>
+                                            <div class="summary-details">
+                                                <div class="total-patterns">
+                                                    Total Patterns: {{ summary.total_patterns - 1 }}
+                                                </div>
+                                                <div class="strength-distribution">
+                                                    <div class="very-strong">Very Strong: {{ summary.strength_distribution['Very Strong'] }}</div>
+                                                    <div class="strong">Strong: {{ summary.strength_distribution['Strong'] }}</div>
+                                                    <div class="moderate">Moderate: {{ summary.strength_distribution['Moderate'] }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% for pattern in analysis.gann_patterns[:-1] %}
+                                            <div class="pattern-item {{ pattern.strength|lower|replace(' ', '-') }}">
+                                                <div class="pattern-header">
+                                                    <span class="pattern-type">{{ pattern.type }}</span>
+                                                    <span class="pattern-strength">{{ pattern.strength }}</span>
+                                                </div>
+                                                <div class="pattern-name">{{ pattern.name }}</div>
+                                                <div class="pattern-details">
+                                                    <span class="pattern-price">₹{{ "%.2f"|format(pattern.price) }}</span>
+                                                    <span class="pattern-date">{{ pattern.date }}</span>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="no-patterns">No significant patterns detected</div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="no-patterns">No pattern analysis available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gann's Trading Rules -->
+                    <div class="grid-item trading-rules-section">
+                        <div class="trading-rules-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-shield-check"></i>
+                                Gann's Trading Rules
+                            </h2>
+                            <div class="rules-grid">
+                                {% if analysis.rules_validation %}
+                                    <div class="rules-summary">
+                                        <div class="score-grid">
+                                            <div class="score-item">
+                                                <span class="score-label">Risk Score</span>
+                                                <span class="score-value">{{ analysis.rules_validation.risk_score }}%</span>
+                                            </div>
+                                            <div class="score-item">
+                                                <span class="score-label">Discipline Score</span>
+                                                <span class="score-value">{{ analysis.rules_validation.discipline_score }}%</span>
+                                            </div>
+                                            <div class="score-item">
+                                                <span class="score-label">Structure Score</span>
+                                                <span class="score-value">{{ analysis.rules_validation.structure_score }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="rules-details">
+                                        {% if analysis.rules_validation.passed_rules %}
+                                            <div class="passed-rules">
+                                                <h3>Passed Rules</h3>
+                                                <ul>
+                                                    {% for rule in analysis.rules_validation.passed_rules %}
+                                                        <li class="rule-item passed">
+                                                            <i class="bi bi-check-circle"></i>
+                                                            {{ rule }}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if analysis.rules_validation.failed_rules %}
+                                            <div class="failed-rules">
+                                                <h3>Failed Rules</h3>
+                                                <ul>
+                                                    {% for rule in analysis.rules_validation.failed_rules %}
+                                                        <li class="rule-item failed">
+                                                            <i class="bi bi-x-circle"></i>
+                                                            {{ rule }}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="no-rules">No rules validation available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buy/Sell Points -->
+                    <div class="grid-item buy-sell-section">
+                        <div class="buy-sell-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-arrow-left-right"></i>
+                                Buy/Sell Points
+                            </h2>
+                            <div class="signals-grid">
+                                {% if analysis.buy_sell_points %}
+                                    {% for signal in analysis.buy_sell_points %}
+                                        <div class="signal-item {{ signal.type.lower() }}">
+                                            <div class="signal-header">
+                                                <span class="signal-type {{ signal.type.lower() }}">{{ signal.type }}</span>
+                                                <span class="signal-strength">{{ signal.strength }}</span>
+                                            </div>
+                                            <div class="signal-pattern">{{ signal.pattern }}</div>
+                                            <div class="signal-details">
+                                                <span class="signal-price">₹{{ "%.2f"|format(signal.price) }}</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="no-signals">No significant buy/sell points detected</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Cycles -->
+                    <div class="grid-item monthly-cycles-section">
+                        <div class="monthly-cycles-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-calendar-check"></i>
+                                Monthly Cycles
+                            </h2>
+                            <div class="monthly-grid">
+                                {% if analysis.monthly_cycles %}
+                                    <div class="current-month">
+                                        <h3>Current Month Bias</h3>
+                                        <div class="bias-value {{ analysis.monthly_cycles.current_month_bias.lower() }}">
+                                            {{ analysis.monthly_cycles.current_month_bias }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="month-patterns">
+                                        <div class="strong-months">
+                                            <h3>Strong Months</h3>
+                                            <div class="month-list">
+                                                {% for month in analysis.monthly_cycles.strong_months %}
+                                                    <span class="month-tag strong">{{ month }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="weak-months">
+                                            <h3>Weak Months</h3>
+                                            <div class="month-list">
+                                                {% for month in analysis.monthly_cycles.weak_months %}
+                                                    <span class="month-tag weak">{{ month }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="historical-patterns">
+                                        <h3>Historical Patterns</h3>
+                                        <div class="patterns-list">
+                                            {% for pattern in analysis.monthly_cycles.historical_patterns %}
+                                                {% if pattern.significance == 'High' %}
+                                                    <div class="history-item">
+                                                        <span class="month-name">Month {{ pattern.month }}</span>
+                                                        <span class="win-rate">{{ "%.0f"|format(pattern.win_rate * 100) }}% Win Rate</span>
+                                                        <span class="avg-return {{ 'positive' if pattern.avg_return > 0 else 'negative' }}">
+                                                            {{ "%.1f"|format(pattern.avg_return * 100) }}% Avg Return
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-cycles">No monthly cycle analysis available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Management -->
+                    <div class="grid-item risk-management-section">
+                        <div class="risk-management-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-shield"></i>
+                                Risk Management
+                            </h2>
+                            <div class="risk-grid">
+                                {% if analysis.risk_management %}
+                                    <div class="risk-summary">
+                                        <div class="risk-metrics">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Risk/Reward Ratio</span>
+                                                <span class="metric-value">{{ "%.2f"|format(analysis.risk_management.risk_reward_ratio) }}</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="metric-label">Stop Loss</span>
+                                                <span class="metric-value">₹{{ "%.2f"|format(analysis.risk_management.stop_loss) }}</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="metric-label">Take Profit</span>
+                                                <span class="metric-value">₹{{ "%.2f"|format(analysis.risk_management.take_profit) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="risk-details">
+                                        <div class="risk-level {{ analysis.risk_management.risk_level|lower }}">
+                                            <h3>Risk Level</h3>
+                                            <div class="level-indicator">{{ analysis.risk_management.risk_level }}</div>
+                                        </div>
+                                        <div class="risk-factors">
+                                            <h3>Risk Factors</h3>
+                                            <ul>
+                                                {% for factor in analysis.risk_management.risk_factors %}
+                                                    <li class="risk-factor-item">
+                                                        <i class="bi bi-exclamation-triangle"></i>
+                                                        {{ factor }}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-risk">No risk management data available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Position Sizing -->
+                    <div class="grid-item position-sizing-section">
+                        <div class="position-sizing-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-stack"></i>
+                                Position Sizing
+                            </h2>
+                            <div class="position-grid">
+                                {% if analysis.position_sizing %}
+                                    <div class="position-summary">
+                                        <div class="position-metrics">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Recommended Size</span>
+                                                <span class="metric-value">{{ analysis.position_sizing.recommended_size }} shares</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="metric-label">Capital at Risk</span>
+                                                <span class="metric-value">{{ "%.1f"|format(analysis.position_sizing.capital_at_risk) }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="sizing-options">
+                                        <h3>Position Options</h3>
+                                        <div class="options-grid">
+                                            {% for option in analysis.position_sizing.options %}
+                                                <div class="option-item {{ option.risk_level|lower }}">
+                                                    <div class="option-header">
+                                                        <span class="option-type">{{ option.type }}</span>
+                                                        <span class="option-risk">{{ option.risk_level }}</span>
+                                                    </div>
+                                                    <div class="option-details">
+                                                        <div class="detail-row">
+                                                            <span class="detail-label">Size</span>
+                                                            <span class="detail-value">{{ option.size }} shares</span>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <span class="detail-label">Capital</span>
+                                                            <span class="detail-value">{{ "%.1f"|format(option.capital_percentage) }}%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-position">No position sizing data available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seasonal Analysis -->
+                    <div class="grid-item seasonal-analysis-section">
+                        <div class="seasonal-analysis-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-calendar4-week"></i>
+                                Seasonal Analysis
+                            </h2>
+                            <div class="seasonal-grid">
+                                {% if analysis.seasonal_analysis %}
+                                    <div class="seasonal-summary">
+                                        <div class="current-season">
+                                            <h3>Current Season</h3>
+                                            <div class="season-bias {{ analysis.seasonal_analysis.current_bias|lower }}">
+                                                {{ analysis.seasonal_analysis.current_bias }}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="seasonal-patterns">
+                                            <h3>Seasonal Patterns</h3>
+                                            <div class="patterns-grid">
+                                                {% for pattern in analysis.seasonal_analysis.patterns %}
+                                                    <div class="seasonal-pattern-item">
+                                                        <div class="pattern-period">{{ pattern.period }}</div>
+                                                        <div class="pattern-stats">
+                                                            <div class="stat-row">
+                                                                <span class="stat-label">Success Rate</span>
+                                                                <span class="stat-value">{{ "%.1f"|format(pattern.success_rate * 100) }}%</span>
+                                                            </div>
+                                                            <div class="stat-row">
+                                                                <span class="stat-label">Avg Return</span>
+                                                                <span class="stat-value {{ 'positive' if pattern.avg_return > 0 else 'negative' }}">
+                                                                    {{ "%.1f"|format(pattern.avg_return * 100) }}%
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-seasonal">No seasonal analysis data available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historical Performance -->
+                    <div class="grid-item historical-performance-section">
+                        <div class="historical-performance-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-clock-history"></i>
+                                Historical Performance
+                            </h2>
+                            <div class="performance-grid">
+                                {% if analysis.historical_performance %}
+                                    <div class="performance-summary">
+                                        <div class="performance-metrics">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Win Rate</span>
+                                                <span class="metric-value">{{ "%.1f"|format(analysis.historical_performance.win_rate * 100) }}%</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="metric-label">Avg Return</span>
+                                                <span class="metric-value {{ 'positive' if analysis.historical_performance.avg_return > 0 else 'negative' }}">
+                                                    {{ "%.1f"|format(analysis.historical_performance.avg_return * 100) }}%
+                                                </span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="metric-label">Max Drawdown</span>
+                                                <span class="metric-value">{{ "%.1f"|format(analysis.historical_performance.max_drawdown * 100) }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-details">
+                                        <h3>Performance Breakdown</h3>
+                                        <div class="performance-periods">
+                                            {% for period in analysis.historical_performance.periods %}
+                                                <div class="period-item">
+                                                    <div class="period-header">
+                                                        <span class="period-name">{{ period.name }}</span>
+                                                        <span class="period-return {{ 'positive' if period.return > 0 else 'negative' }}">
+                                                            {{ "%.1f"|format(period.return * 100) }}%
+                                                        </span>
+                                                    </div>
+                                                    <div class="period-stats">
+                                                        <div class="stat-row">
+                                                            <span class="stat-label">Trades</span>
+                                                            <span class="stat-value">{{ period.trades }}</span>
+                                                        </div>
+                                                        <div class="stat-row">
+                                                            <span class="stat-label">Win Rate</span>
+                                                            <span class="stat-value">{{ "%.1f"|format(period.win_rate * 100) }}%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="no-performance">No historical performance data available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time-Price Balance -->
+                    <div class="grid-item time-price-section">
+                        <div class="time-price-card">
+                            <h2 class="section-title">
+                                <i class="bi bi-arrow-left-right"></i>
+                                Time-Price Balance
+                            </h2>
+                            <div class="balance-grid">
+                                {% if analysis.time_price_balance %}
+                                    {% for balance in analysis.time_price_balance %}
+                                    <div class="balance-item">
+                                        <div class="balance-type">{{ balance.type }}</div>
+                                        <div class="balance-value">
+                                            <span class="balance-price">₹{{ "%.2f"|format(balance.price) }}</span>
+                                            <span class="balance-date">{{ balance.date }}</span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="no-balance">No significant time-price relationships found</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
